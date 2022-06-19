@@ -1,3 +1,9 @@
+from Coord import Coord
+from Game import Game
+import random
+from Map import Map
+
+
 class Room(object):
     """A rectangular room in the map"""
 
@@ -34,5 +40,5 @@ class Room(object):
 
     def decorate(self, map):
         """Decorates the room by adding a random equipment and monster."""
-        map.put(self.randEmptyCoord(map), theGame().randEquipment())
-        map.put(self.randEmptyCoord(map), theGame().randMonster())
+        map.put(self.randEmptyCoord(map), Game().randEquipment())
+        map.put(self.randEmptyCoord(map), Game().randMonster())

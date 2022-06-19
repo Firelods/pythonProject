@@ -1,4 +1,4 @@
-import Creature
+from Creature import Creature
 from Equipment import Equipment
 
 
@@ -48,4 +48,9 @@ class Hero(Creature):
             raise ValueError('Equipment ' + elem.name + 'not in inventory')
         if elem.use(self):
             self._inventory.remove(elem)
+
+    def heal(self, hp):
+        """Heal the hero"""
+        self.hp += hp
+
 

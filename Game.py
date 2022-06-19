@@ -1,41 +1,76 @@
 import copy
 from random import random
-
-import Equipment
 from Coord import Coord
+from Element import Element
+from Equipment import Equipment
+
 from Creature import Creature
-from Stairs import Stairs
-from main import theGame, getch
+from Hero import Hero
+from Map import Map
+
+
+def _find_getch():
+    """Single char input, only works only on mac/linux/windows OS terminals"""
+    try:
+        import termios
+    except ImportError:
+        # Non-POSIX. Return msvcrt's (Windows') getch.
+        import msvcrt
+        return lambda: msvcrt.getch().decode('utf-8')
+    # POSIX system. Create and return a getch that manipulates the tty.
+    import sys, tty
+    def _getch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+    return _getch
+
+
+class Stairs(Element):
+    """ Stairs that goes down one floor. """
+
+    def __init__(self):
+        super().__init__("Stairs", 'E')
+
+    def meet(self, hero):
+        """Goes down"""
+        Game().buildFloor()
+        Game().addMessage("The " + hero.name + " goes down")
 
 
 class Game(object):
     """ Class representing game state """
 
     """ available equipments """
-    equipments = {0: [Equipment("potion", "!", usage=lambda self, hero: heal(hero)),
-                      Equipment("gold", "o")],
-                  1: [Equipment("potion", "!", usage=lambda self, hero: teleport(hero, True))],
-                  2: [Equipment("bow", usage=lambda self, hero: throw(1, True))],
-                  3: [Equipment("portoloin", "w", usage=lambda self, hero: teleport(hero, False))],
+    equipments = {0: [Equipment("potion", "!", usage=lambda self, hero: Hero.heal(hero)), Equipment("gold", "o")],
+                  1: [Equipment("potion", "!", usage=lambda self, hero: Hero.teleport(hero, True))],
+                  2: [Equipment("bow", usage=lambda self, hero: Hero.throw(1, True))],
+                  3: [Equipment("portoloin", "w", usage=lambda self, hero: Hero.teleport(hero, False))],
                   }
     """ available monsters """
     monsters = {0: [Creature("Goblin", 4), Creature("Bat", 2, "W")],
                 1: [Creature("Ork", 6, strength=2), Creature("Blob", 10)], 5: [Creature("Dragon", 20, strength=3)]}
 
     """ available actions """
-    _actions = {'z': lambda h: theGame()._floor.move(h, Coord(0, -1)),
-                'q': lambda h: theGame()._floor.move(h, Coord(-1, 0)),
-                's': lambda h: theGame()._floor.move(h, Coord(0, 1)),
-                'd': lambda h: theGame()._floor.move(h, Coord(1, 0)),  # se déplacer en diagonale
-                'x': lambda h: theGame()._floor.move(h, Coord(1, 1)),
-                'w': lambda h: theGame()._floor.move(h, Coord(-1, 1)),
-                'e': lambda h: theGame()._floor.move(h, Coord(1, -1)),
-                'a': lambda h: theGame()._floor.move(h, Coord(-1, -1)),
-                'i': lambda h: theGame().addMessage(h.fullDescription()), 'k': lambda h: h.__setattr__('hp', 0),
-                'u': lambda h: h.use(theGame().select(h._inventory)), ' ': lambda h: None,
-                'h': lambda hero: theGame().addMessage("Actions disponibles : " + str(list(Game._actions.keys()))),
-                'b': lambda hero: theGame().addMessage("I am " + hero.name),
-                'c': lambda hero: theGame().destroyEquipment()}
+    _actions = {'z': lambda h: Game()._floor.move(h, Coord(0, -1)),
+                'q': lambda h: Game()._floor.move(h, Coord(-1, 0)),
+                's': lambda h: Game()._floor.move(h, Coord(0, 1)),
+                'd': lambda h: Game()._floor.move(h, Coord(1, 0)),  # se déplacer en diagonale
+                'x': lambda h: Game()._floor.move(h, Coord(1, 1)),
+                'w': lambda h: Game()._floor.move(h, Coord(-1, 1)),
+                'e': lambda h: Game()._floor.move(h, Coord(1, -1)),
+                'a': lambda h: Game()._floor.move(h, Coord(-1, -1)),
+                'i': lambda h: Game().addMessage(h.fullDescription()), 'k': lambda h: h.__setattr__('hp', 0),
+                'u': lambda h: h.use(Game().select(h._inventory)), ' ': lambda h: None,
+                'h': lambda hero: Game().addMessage("Actions disponibles : " + str(list(Game._actions.keys()))),
+                'b': lambda hero: Game().addMessage("I am " + hero.name),
+                'c': lambda hero: Game().destroyEquipment()}
 
     def __init__(self, level=1, hero=None):
         self._level = level
@@ -87,7 +122,7 @@ class Game(object):
 
     def select(self, l):
         print("Choose item> " + str([str(l.index(e)) + ": " + e.name for e in l]))
-        c = getch()
+        c = _find_getch().getch()
         if c.isdigit() and int(c) in range(len(l)):
             return l[int(c)]
 
@@ -100,8 +135,11 @@ class Game(object):
             print(self._floor)
             print(self._hero.description())
             print(self.readMessages())
-            c = getch()
+            c = _find_getch().getch()
             if c in Game._actions:
                 Game._actions[c](self._hero)
             self._floor.moveAllMonsters()
         print("--- Game Over ---")
+
+
+Game().play()

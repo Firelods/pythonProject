@@ -1,5 +1,5 @@
 from Element import Element
-from main import theGame
+# from main import theGame
 
 
 class Creature(Element):
@@ -19,7 +19,7 @@ class Creature(Element):
         """The creature is encountered by an other creature.
             The other one hits the creature. Return True if the creature is dead."""
         self.hp -= other.strength
-        theGame().addMessage("The " + other.name + " hits the " + self.description())
+        # theGame().addMessage("The " + other.name + " hits the " + self.description())
         if self.hp > 0:
             return False
         return True

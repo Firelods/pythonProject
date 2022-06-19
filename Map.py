@@ -1,4 +1,10 @@
-import Coord,Hero
+from Coord import Coord
+from Hero import Hero
+from main import sign
+from Room import Room
+from Element import Element
+from Creature import Creature
+import random
 
 
 class Map(object):
